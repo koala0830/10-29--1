@@ -1,78 +1,93 @@
 import streamlit as st
-from PIL import Image
-import requests
-from io import BytesIO
+import random
 
 st.set_page_config(page_title="코알라 꾸미기 🐨", page_icon="🐨", layout="centered")
 
-st.title("🐨 코알라 꾸미기 놀이터")
-st.write("귀여운 코알라에게 옷과 소품을 입혀보세요!")
+st.title("🐨 코알라 꾸미기 놀이터 (이모티콘 버전)")
+st.write("이모티콘으로 코알라를 꾸며보세요! 💖")
 
-# 🔹 이미지 로드 함수
-@st.cache_data
-def load_image(url):
-    response = requests.get(url)
-    return Image.open(BytesIO(response.content)).convert("RGBA")
+# 🎨 기본 코알라
+koala_base = "🐨"
 
-# 🔹 기본 코알라
-base_koala = load_image(
-    "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/koala_base.png"
-)
-
-# 🔹 의상 / 소품 URL 모음 (투명 PNG)
+# 🎽 상의
 tops = {
-    "없음": None,
-    "분홍 티셔츠": "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/top_pink.png",
-    "파란 셔츠": "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/top_blue.png",
-    "노랑 후드티": "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/top_yellow.png",
+    "없음": "",
+    "분홍 셔츠": "👚",
+    "파란 셔츠": "👕",
+    "후드티": "🧥",
+    "정장": "🤵",
+    "가죽 재킷": "🧥🕶️",
 }
 
+# 👖 하의
 bottoms = {
-    "없음": None,
-    "청바지": "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/bottom_jeans.png",
-    "반바지": "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/bottom_shorts.png",
-    "치마": "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/bottom_skirt.png",
+    "없음": "",
+    "청바지": "👖",
+    "반바지": "🩳",
+    "치마": "👗",
+    "한복 하의": "🎎",
 }
 
+# 🎩 소품
 accessories = {
-    "없음": None,
-    "모자": "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/acc_hat.png",
-    "왕관": "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/acc_crown.png",
-    "선글라스": "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/acc_sunglasses.png",
-    "안경": "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/acc_glasses.png",
-    "목걸이": "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/acc_necklace.png",
-    "리본": "https://raw.githubusercontent.com/akshaybahadur21/Koala-DressUp-Demo/main/images/acc_ribbon.png",
+    "없음": "",
+    "모자": "🎩",
+    "왕관": "👑",
+    "리본": "🎀",
+    "선글라스": "🕶️",
+    "안경": "👓",
+    "목걸이": "📿",
+    "가방": "👜",
+    "꽃": "🌸",
 }
 
-# 🔹 사이드바
+# 🌈 배경
+backgrounds = {
+    "없음": "",
+    "숲": "🌳🌿🌲",
+    "바다": "🌊🏖️🐚",
+    "하늘": "☁️🌈✨",
+    "도시": "🏙️🚗🌆",
+    "무지개": "🌈💫⭐",
+    "파티": "🎉🎊🎈",
+}
+
+# 🔧 사이드바 옵션
 st.sidebar.header("🎨 꾸미기 옵션")
 selected_top = st.sidebar.selectbox("상의 선택", list(tops.keys()))
 selected_bottom = st.sidebar.selectbox("하의 선택", list(bottoms.keys()))
 selected_acc = st.sidebar.multiselect("소품 선택 (복수 선택 가능)", list(accessories.keys()))
+selected_bg = st.sidebar.selectbox("배경 선택", list(backgrounds.keys()))
 
-# 🔹 합성용 이미지
-final_img = base_koala.copy()
+# 🎲 랜덤 꾸미기
+if st.sidebar.button("랜덤 코알라 🎲"):
+    selected_top = random.choice(list(tops.keys()))
+    selected_bottom = random.choice(list(bottoms.keys()))
+    selected_acc = random.sample(list(accessories.keys()), k=random.randint(0, 3))
+    selected_bg = random.choice(list(backgrounds.keys()))
 
-def paste_image(base, url):
-    if url:
-        overlay = load_image(url)
-        base.paste(overlay, (0, 0), overlay)
+# 💫 코알라 꾸미기
+final_look = f"""
+{backgrounds[selected_bg]}
 
-# 순서대로 겹치기
-paste_image(final_img, tops[selected_top])
-paste_image(final_img, bottoms[selected_bottom])
-for acc in selected_acc:
-    paste_image(final_img, accessories[acc])
+{accessories.get('왕관', '') if '왕관' in selected_acc else ''}
+{accessories.get('모자', '') if '모자' in selected_acc else ''}
+{accessories.get('리본', '') if '리본' in selected_acc else ''}
+{koala_base}
+{tops[selected_top]} {bottoms[selected_bottom]}
 
-# 🔹 결과 표시
-st.image(final_img, caption="✨ 나만의 꾸민 코알라", use_container_width=True)
+{" ".join([accessories[a] for a in selected_acc if a not in ['왕관','모자','리본']])}
 
-# 🔹 다운로드
-buf = BytesIO()
-final_img.save(buf, format="PNG")
+{backgrounds[selected_bg]}
+"""
+
+# 💖 출력
+st.markdown(f"<h1 style='text-align:center; font-size:3em;'>{final_look}</h1>", unsafe_allow_html=True)
+
+# 📸 다운로드 (텍스트로 저장)
 st.download_button(
-    "📸 이미지 다운로드",
-    data=buf.getvalue(),
-    file_name="koala_dressup.png",
-    mime="image/png",
+    label="📥 꾸민 코알라 저장하기",
+    data=final_look,
+    file_name="koala_emoji.txt",
+    mime="text/plain",
 )
